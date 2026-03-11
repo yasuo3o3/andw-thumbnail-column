@@ -11,6 +11,7 @@
  * Text Domain:       andw-thumbnail-column
  * Requires at least: 6.0
  * Requires PHP:      8.0
+ * @package Andw_Tc
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -102,7 +103,7 @@ class Andw_Tc_Plugin {
 	/**
 	 * 列ヘッダーにサムネイル列を追加する。
 	 *
-	 * @param array<string, string> $columns 既存の列配列。
+	 * @param array<string, string> $columns 既存の列配列。.
 	 * @return array<string, string> サムネイル列を追加した列配列。
 	 */
 	public function add_thumbnail_column( array $columns ): array {
@@ -113,8 +114,8 @@ class Andw_Tc_Plugin {
 	/**
 	 * サムネイル列のセルを描画する。
 	 *
-	 * @param string $column_name 列名。
-	 * @param int    $post_id     投稿ID。
+	 * @param string $column_name 列名。.
+	 * @param int    $post_id     投稿ID。.
 	 */
 	public function render_thumbnail_column( string $column_name, int $post_id ): void {
 		if ( 'andw_tc_thumbnail' !== $column_name ) {
@@ -138,7 +139,7 @@ class Andw_Tc_Plugin {
 	/**
 	 * 管理画面にインライン CSS を追加する。
 	 *
-	 * @param string $hook 現在の管理画面フック名。
+	 * @param string $hook 現在の管理画面フック名。.
 	 */
 	public function enqueue_admin_styles( string $hook ): void {
 		if ( 'edit.php' !== $hook ) {
@@ -159,7 +160,7 @@ class Andw_Tc_Plugin {
 	/**
 	 * 投稿タイプ入力値をサニタイズする。
 	 *
-	 * @param mixed $input フォームからの入力値。
+	 * @param mixed $input フォームからの入力値。.
 	 * @return array<string> サニタイズ済み投稿タイプ配列。
 	 */
 	public function sanitize_post_types( mixed $input ): array {
@@ -218,7 +219,7 @@ class Andw_Tc_Plugin {
 	}
 }
 
-// 有効化フック: デフォルトオプション保存（既存値があれば上書きしない）。
+// 有効化フック: デフォルトオプション保存（既存値があれば上書きしない）。.
 register_activation_hook(
 	__FILE__,
 	function () {
@@ -226,7 +227,7 @@ register_activation_hook(
 	}
 );
 
-// 管理画面でのみ初期化。
+// 管理画面でのみ初期化。.
 if ( is_admin() ) {
 	new Andw_Tc_Plugin();
 }
