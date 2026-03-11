@@ -1,0 +1,10 @@
+# 認証情報・機密ファイル
+.env
+.env.local
+.env.*
+*.pem
+*.key
+*.crt
+*secret*
+*credential*
+wp-config.php

@@ -1,0 +1,14 @@
+# 配布ZIPから除外するファイル
+docs export-ignore
+.vscode export-ignore
+.history export-ignore
+.claude export-ignore
+.gemini export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
+CHANGELOG.md export-ignore
+TESTING.md export-ignore
+HANDOFF.md export-ignore
+CLAUDE.md export-ignore
+README.md export-ignore
+.distignore export-ignore

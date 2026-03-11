@@ -1,0 +1,17 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 6
+	paths:
+		- .
+	excludePaths:
+		analyseAndScan:
+			- vendor
+			- node_modules (?)
+			- docs
+			- tests (?)
+	# WordPress 関数・クラスの型情報を提供
+	scanDirectories: []
+	# ベースラインファイル（初回実行後に生成）
+	# baseline: phpstan-baseline.neon
