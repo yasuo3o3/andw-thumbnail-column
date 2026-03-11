@@ -39,6 +39,15 @@
 
 ## 実装ステップ
 
+| Phase | 内容 | 詳細 | 見積 |
+|-------|------|------|------|
+| 1 | プラグイン骨格 | [phase-1-skeleton.md](phases/phase-1-skeleton.md) | 0.3人日 |
+| 2 | 設定画面 | [phase-2-settings.md](phases/phase-2-settings.md) | 0.5人日 |
+| 3 | サムネイル列追加 | [phase-3-column.md](phases/phase-3-column.md) | 0.5人日 |
+| 4 | アンインストール処理 | [phase-4-uninstall.md](phases/phase-4-uninstall.md) | 0.1人日 |
+
+---
+
 ### Phase 1: プラグイン骨格
 
 **要求定義との関連**: 全項目の基盤
