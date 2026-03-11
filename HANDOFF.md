@@ -2,36 +2,36 @@
 
 ## 現在地
 
-**ワークフローフェーズ: C 完了 → D（実装）待ち**
+**ワークフローフェーズ: D 完了 → E（コードレビュー）待ち**
 
-Phase C（実装準備）完了。Phase 詳細ファイル4つと SONNET-PROMPT.md を作成済み。
-Codex 用プロンプトが準備できた。`/codex` スキルで実装を開始できる。
+Phase D（実装）完了。Codex が Phase 1〜4 を全て実装・コミット済み。
+次は Phase E（コードレビュー: Sonnet 5並列 + Opus 統合）。
 
 ## 完了済み
 
 - Phase A: SPEC.md 確認、PHASE-PLAN.md 初版作成
 - Phase B: ペルソナレビュー（5並列）→ 統合 → PHASE-PLAN.md 改訂
 - Phase C: Phase 詳細ファイル作成 + SONNET-PROMPT.md 作成
-  - `docs/phases/phase-1-skeleton.md` — プラグイン骨格
-  - `docs/phases/phase-2-settings.md` — 設定画面
-  - `docs/phases/phase-3-column.md` — サムネイル列追加
-  - `docs/phases/phase-4-uninstall.md` — アンインストール処理
-  - `docs/SONNET-PROMPT.md` — Codex 用実装指示
+- Phase D: Codex による実装（全4 Phase）
+  - Phase 1: プラグイン骨格 → `andw-thumbnail-column.php` 作成
+  - Phase 2: 設定画面追加
+  - Phase 3: サムネイル列追加（動的フック登録 + CSS）
+  - Phase 4: アンインストール処理 → `uninstall.php` 作成
 
-## テンプレート未置換の修正（Phase B で実施済み）
+## Codex テスト結果（docs/CODEX-TEST-LOG.md に詳細）
 
-- `phpcs.xml.dist`: テキストドメイン → `andw-thumbnail-column`、プレフィックス → `andw_tc_`、WPバージョン → 6.0
-- `composer.json`: name → `andw/andw-thumbnail-column`
-- `phpstan.neon`: `node_modules (?)` → `node_modules`
+- `-s danger-full-access` で全 Phase 成功
+- `php -l` 全ファイル構文エラーなし
+- `composer install` は未実施（PHPCS/PHPStan は Phase E で実行）
 
 ## 次にやること
 
-- Phase D: `/codex` スキルで Codex に実装を投げる
-- Codex は `docs/SONNET-PROMPT.md` を起点に Phase 1〜4 を順次実装
-- 実装完了後 Phase E（コードレビュー）へ
+- Phase E: コードレビュー（Sonnet 5ペルソナ並列 + Opus 統合）
+  - `composer install` → `phpcs` / `phpstan` を実行してから実コードレビュー
+  - レビュー結果に基づき修正範囲を確定
+- 不具合がなければ Phase F（テスト・ユーザー検証）へ
 
 ## 注意点
 
-- Opus はコーディング禁止（Phase E' の直接修正ルール特例を除く）
-- `manage_posts_columns` は使わない → `manage_{$post_type}_posts_columns` で動的登録
-- Settings API の全チェックOFF対応を忘れずに（空配列ハンドリング）
+- Codex のコミットは Codex 自身が行っている（Co-Authored-By なし）
+- `docs/CODEX-TEST-LOG.md` は未コミット → Phase E の前にコミットする
