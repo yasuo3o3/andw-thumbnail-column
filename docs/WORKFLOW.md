@@ -12,11 +12,11 @@ Opus が設計・レビューを担当し、Codex が実装を担当する分業
 | フェーズ | 担当モデル | 理由 |
 |---------|-----------|------|
 | A. 設計相談 | **Opus** | 設計判断 |
-| B. ペルソナレビュー | **Sonnet** | Opus の設計を別の目で見る |
+| B. ペルソナレビュー | **Codex 先行 → Sonnet 検証** | Codex が5ペルソナでレビュー、Sonnet が誤指摘フィルタ＋漏れ補完 |
 | C. 実装準備 | **Opus** | 設計→実装の橋渡し |
 | D. 実装 | **Codex（gpt-5.3-codex）** | 自律的な反復実装に特化、コスト効率が高い |
 | E. コードレビュー | **Sonnet（5並列）+ Opus（統合）** | Sonnet がペルソナレビュー、Opus が統合・判定 |
-| E'. 修正サイクル | **Codex → Opus** | Codex が修正、Opus が単独確認 |
+| E'. 修正サイクル | **Sonnet → Opus** | Sonnet が修正（Codex は曖昧な修正指示で誤解しやすい）、Opus が単独確認 |
 | F. テスト・ユーザー検証 | **Opus + オーナー** | テストIssue作成→実機確認 |
 
 ---
@@ -47,7 +47,7 @@ Opus が設計・レビューを担当し、Codex が実装を担当する分業
 
 ```
 A. 設計相談  →  B. ペルソナレビュー  →  C. 実装準備  →  D. 実装  →  E. レビュー  →  E'. 修正  →  F. テスト
-   (Opus)          (Sonnet並列)           (Opus)        (Codex)    (Sonnet+Opus)  (Codex→Opus)   (Opus+オーナー)
+   (Opus)          (Codex→Sonnet)         (Opus)        (Codex)    (Sonnet+Opus)  (Sonnet→Opus)  (Opus+オーナー)
 ```
 
 ### フェーズ A — 設計相談（Opus + オーナー）
@@ -72,12 +72,15 @@ A. 設計相談  →  B. ペルソナレビュー  →  C. 実装準備  →  D.
 
 ---
 
-### フェーズ B — ペルソナレビュー（Sonnet 並列エージェント）【任意】
+### フェーズ B — ペルソナレビュー（Codex 先行 → Sonnet 検証）【任意】
 
 **やること:**
-- 5人のペルソナ（security-expert, wp-expert, beginner-user, breaker, ai-crawler）を **Sonnet エージェント** で並列起動し、設計をレビュー
-- `/review-design` コマンドで実行可能
-- Opus がレビュー結果を統合し、PHASE-PLAN.md を改訂
+1. **Codex** に5ペルソナ（security-expert, wp-expert, beginner-user, breaker, ai-crawler）で PHASE-PLAN.md をレビューさせる（`/codex` スキル経由）
+2. **Sonnet** に Codex の結果を渡し、誤指摘のフィルタリング＋漏れている観点の補完をさせる
+3. Opus が統合し、PHASE-PLAN.md を改訂
+- `/review-design` コマンドで実行可能（Sonnet 並列モードも引き続き選択肢として使える）
+
+**この方式の狙い:** Codex は設計の実用的な問題（負荷・権限・エッジケース）に強く、Sonnet は正確性チェックとフィルタリングに強い。2段階にすることでコストを抑えつつ精度を維持する。
 
 **出力:** 改訂版 PHASE-PLAN.md
 
@@ -157,16 +160,18 @@ A. 設計相談  →  B. ペルソナレビュー  →  C. 実装準備  →  D.
 
 ---
 
-### フェーズ E' — 修正サイクル（Codex 修正 → Opus 単独確認）
+### フェーズ E' — 修正サイクル（Sonnet 修正 → Opus 単独確認）
 
-**実行者:** Codex（修正）→ Opus（確認）
+**実行者:** Sonnet（修正）→ Opus（確認）
 
 **やること:**
-1. Codex が修正プロンプトに従い修正を実施（Phase D と同じ手順、`/codex` スキル経由）
+1. Sonnet が修正プロンプトに従い修正を実施
 2. Opus が修正箇所を **単独で確認**（ペルソナレビューは不要）
 3. 修正が不十分な場合 → **Opus が直接修正する**（GATE ルール特例）
 
-**直接修正ルール:** 一度 Codex に修正を依頼して確認した結果、まだ BUG が残っている場合は、再度 Codex に差し戻さず Opus が直接コードを修正する。修正→確認→再修正の往復は無駄が多いため。
+**Codex ではなく Sonnet を使う理由:** Codex は「曖昧な修正指示」を誤解しやすい（例: 「句読点をピリオドに」→ ピリオドを追記してしまう）。コードの文脈を理解して適切に修正するには Sonnet の方が確実。
+
+**直接修正ルール:** 一度 Sonnet に修正を依頼して確認した結果、まだ BUG が残っている場合は、再度差し戻さず Opus が直接コードを修正する。修正→確認→再修正の往復は無駄が多いため。
 
 **判断基準:** BUG が 0 件、FIX の残りが軽微であれば Phase F に進む。
 
@@ -239,17 +244,17 @@ Phase 3 の設計完了。Sonnet 向けプラン整形中。
 [Phase A] Opus: 設計 → PHASE-PLAN.md 草案
   ↓ オーナー承認
   ↓ ⛔ コーディング禁止！
-[Phase B] Opus: ペルソナレビュー（Sonnet並列）→ PHASE-PLAN.md 改訂 【任意】
+[Phase B] Codex: 5ペルソナレビュー → Sonnet: 検証・補完 → Opus: PHASE-PLAN.md 改訂 【任意】
   ↓ オーナー承認
   ↓ ⛔ コーディング禁止！
-[Phase C] Opus: Sonnet向け整形 → SONNET-PROMPT.md 作成
+[Phase C] Opus: Codex向け整形 → SONNET-PROMPT.md 作成
   ↓ オーナー承認
   ↓ ⛔ コーディング禁止！
 [Phase D] Codex（/codex スキル）: 実装 → コミット
   ↓ 単位ごとに完了
 [Phase E] Sonnet 5並列（beginner/crawler/security/wp/breaker）→ Opus 統合・判定
   ↓ オーナーと修正範囲確認 → 修正プロンプト作成
-[Phase E'] Codex（/codex スキル）: 修正 → Opus 単独確認
+[Phase E'] Sonnet: 修正 → Opus 単独確認
   ↓ BUG 残あり → E' 繰り返し（2回目以降は Opus 直接修正）
   ↓ BUG 0 → Phase F へ
 [Phase F] テストIssue作成 → 管理画面テスト（やすお）+ フロントテスト（AI）
