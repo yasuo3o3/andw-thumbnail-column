@@ -52,3 +52,18 @@
   - `/codex` スキルの `--full-auto` を `-s danger-full-access` に変更すべき
   - `composer install` は事前に手動で実行しておく運用にする
 - **トークン消費**: Phase 1: 5,811 / Phase 2: 11,107 / Phase 3: 12,272 / Phase 4: 10,502（合計約4万トークン）
+
+### 2026-03-11 PHPCS エラー修正（Phase E' 修正依頼）
+- **指示内容**: `codex exec -s danger-full-access -m gpt-5.3-codex "phpcs で検出された9件のエラーを修正して..."` （PHPCS エラー一覧とルールを添付）
+- **結果**: 部分的（修正はされたが、日本語コメントの句読点処理に問題）
+- **良かった点**:
+  - trailing whitespace、mixed line endings（CRLF→LF統一）は正しく修正
+  - @package タグの追加も正確
+- **問題点**:
+  - PHPCS の `Squiz.Commenting.FunctionComment.ParamCommentNotCapital` / `...MissingParamComment` ルールへの対応で、日本語コメント末尾の「。」の後に英語のピリオド「.」を追加してしまった（例: `@param string $column_name Column name。.`）
+  - 意図は「句読点をピリオドに置換」だったが、Codex は「ピリオドを追記」と解釈した
+  - 結果として「。.」という不自然な表記が複数箇所に発生
+- **対処**:
+  - Phase E' 直接修正ルールにより Opus が手動修正
+  - @param / @return の説明文を英語に統一し、PHPCS ルールに完全準拠させた
+  - **教訓**: Codex に PHPCS 修正を依頼する際は「日本語コメントを英語に書き換えよ」と明示的に指示すべき。「句読点をピリオドに」という曖昧な指示は誤解される
