@@ -34,21 +34,21 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="PLUGIN-TEXT-DOMAIN"/>
+				<element value="andw-thumbnail-column"/>
 			</property>
 		</properties>
 	</rule>
 
 	<!-- PHP互換性（プロジェクトのRequires PHPに合わせる） -->
-	<config name="minimum_wp_version" value="6.4"/>
+	<config name="minimum_wp_version" value="6.0"/>
 
 	<!-- 関数プレフィックス（プロジェクトごとに変更） -->
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="andw_"/>
-				<element value="Andw_"/>
-				<element value="ANDW_"/>
+				<element value="andw_tc_"/>
+				<element value="Andw_Tc_"/>
+				<element value="ANDW_TC_"/>
 			</property>
 		</properties>
 	</rule>

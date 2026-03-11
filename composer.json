@@ -1,6 +1,6 @@
 {
-	"name": "andw/plugin-name",
-	"description": "andW WordPress Plugin",
+	"name": "andw/andw-thumbnail-column",
+	"description": "投稿一覧画面にサムネイル列を追加するWordPressプラグイン",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
 	"require": {
