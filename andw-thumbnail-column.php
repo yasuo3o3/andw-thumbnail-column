@@ -40,7 +40,8 @@ class Andw_Tc_Plugin {
 	 * コンストラクタ。フックを登録する。
 	 */
 	public function __construct() {
-		// TODO: Phase 2 で設定画面フックを追加
+		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		// TODO: Phase 3 でサムネイル列フックを追加
 	}
 
@@ -56,6 +57,95 @@ class Andw_Tc_Plugin {
 			return self::DEFAULT_POST_TYPES;
 		}
 		return $value;
+	}
+
+	/**
+	 * 設定ページをメニューに追加する。
+	 */
+	public function add_settings_page(): void {
+		add_options_page(
+			__( 'サムネイル列', 'andw-thumbnail-column' ),
+			__( 'サムネイル列', 'andw-thumbnail-column' ),
+			'manage_options',
+			'andw-thumbnail-column',
+			array( $this, 'render_settings_page' )
+		);
+	}
+
+	/**
+	 * Settings API でオプションを登録する。
+	 */
+	public function register_settings(): void {
+		register_setting(
+			'andw_tc_settings_group',
+			self::OPTION_NAME,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( $this, 'sanitize_post_types' ),
+				'default'           => self::DEFAULT_POST_TYPES,
+			)
+		);
+	}
+
+	/**
+	 * 投稿タイプ入力値をサニタイズする。
+	 *
+	 * @param mixed $input フォームからの入力値。
+	 * @return array<string> サニタイズ済み投稿タイプ配列。
+	 */
+	public function sanitize_post_types( mixed $input ): array {
+		if ( ! is_array( $input ) ) {
+			return array();
+		}
+
+		$input       = array_map( 'sanitize_key', $input );
+		$valid_types = array_keys( get_post_types( array( 'show_ui' => true ) ) );
+
+		return array_values( array_intersect( $input, $valid_types ) );
+	}
+
+	/**
+	 * 設定ページを描画する。
+	 */
+	public function render_settings_page(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'この操作を行う権限がありません。', 'andw-thumbnail-column' ) );
+		}
+
+		$enabled    = $this->get_enabled_post_types();
+		$post_types = get_post_types( array( 'show_ui' => true ), 'objects' );
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+			<form method="post" action="options.php">
+				<?php settings_fields( 'andw_tc_settings_group' ); ?>
+				<?php do_settings_sections( 'andw-thumbnail-column' ); ?>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'サムネイル列を表示する投稿タイプ', 'andw-thumbnail-column' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<?php foreach ( $post_types as $post_type ) : ?>
+									<label>
+										<input
+											type="checkbox"
+											name="<?php echo esc_attr( self::OPTION_NAME ); ?>[]"
+											value="<?php echo esc_attr( $post_type->name ); ?>"
+											<?php checked( in_array( $post_type->name, $enabled, true ) ); ?>
+										/>
+										<?php echo esc_html( $post_type->label ); ?>
+									</label><br />
+								<?php endforeach; ?>
+							</fieldset>
+						</td>
+					</tr>
+				</table>
+				<?php submit_button(); ?>
+			</form>
+		</div>
+		<?php
 	}
 }
 
