@@ -42,7 +42,8 @@ class Andw_Tc_Plugin {
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
-		// TODO: Phase 3 でサムネイル列フックを追加
+		add_action( 'admin_init', array( $this, 'register_column_hooks' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
 	}
 
 	/**
@@ -85,6 +86,74 @@ class Andw_Tc_Plugin {
 				'default'           => self::DEFAULT_POST_TYPES,
 			)
 		);
+	}
+
+	/**
+	 * 有効な投稿タイプに対してサムネイル列フックを登録する。
+	 */
+	public function register_column_hooks(): void {
+		$enabled = $this->get_enabled_post_types();
+		foreach ( $enabled as $post_type ) {
+			add_filter( "manage_{$post_type}_posts_columns", array( $this, 'add_thumbnail_column' ), 99 );
+			add_action( "manage_{$post_type}_posts_custom_column", array( $this, 'render_thumbnail_column' ), 10, 2 );
+		}
+	}
+
+	/**
+	 * 列ヘッダーにサムネイル列を追加する。
+	 *
+	 * @param array<string, string> $columns 既存の列配列。
+	 * @return array<string, string> サムネイル列を追加した列配列。
+	 */
+	public function add_thumbnail_column( array $columns ): array {
+		$columns['andw_tc_thumbnail'] = __( 'サムネイル', 'andw-thumbnail-column' );
+		return $columns;
+	}
+
+	/**
+	 * サムネイル列のセルを描画する。
+	 *
+	 * @param string $column_name 列名。
+	 * @param int    $post_id     投稿ID。
+	 */
+	public function render_thumbnail_column( string $column_name, int $post_id ): void {
+		if ( 'andw_tc_thumbnail' !== $column_name ) {
+			return;
+		}
+
+		$thumbnail = get_the_post_thumbnail( $post_id, 'thumbnail' );
+
+		if ( $thumbnail ) {
+			$thumbnail_id = (int) get_post_thumbnail_id( $post_id );
+			$file_path    = get_attached_file( $thumbnail_id );
+			if ( $file_path && file_exists( $file_path ) ) {
+				echo wp_kses_post( $thumbnail );
+				return;
+			}
+		}
+
+		echo '<span class="andw-tc-no-image" aria-hidden="true"></span>';
+	}
+
+	/**
+	 * 管理画面にインライン CSS を追加する。
+	 *
+	 * @param string $hook 現在の管理画面フック名。
+	 */
+	public function enqueue_admin_styles( string $hook ): void {
+		if ( 'edit.php' !== $hook ) {
+			return;
+		}
+
+		$css = '
+			.column-andw_tc_thumbnail { width: 70px; }
+			.column-andw_tc_thumbnail img { width: 60px; height: 60px; object-fit: cover; display: block; }
+			.andw-tc-no-image { display: block; width: 60px; height: 60px; background: #ddd; }
+		';
+
+		wp_register_style( 'andw-tc-admin', false, array(), '1.0.0' );
+		wp_enqueue_style( 'andw-tc-admin' );
+		wp_add_inline_style( 'andw-tc-admin', $css );
 	}
 
 	/**
